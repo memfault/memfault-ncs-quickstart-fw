@@ -1,0 +1,19 @@
+{
+    "name": "nRF Connect SDK Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+// "features": {
+    //     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    // },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "nordic-semiconductor.nrf-connect-extension-pack"
+            ],
+            "settings": {
+                "terminal.integrated.shell.linux": "nrfutil toolchain-manager launch /bin/bash -- /root/entry.sh"
+            }
+        }
+    }
+}
