@@ -1,10 +1,9 @@
 {
     "name": "nRF Connect SDK Dev Container",
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
-// "features": {
-    //     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "image": "ghcr.io/memfault/memfault-ncs-quickstart-fw:2025-10-29",
+    // To build the image from source, uncomment the following lines
+    // "build": {
+    //     "dockerfile": "Dockerfile"
     // },
     "customizations": {
         "vscode": {

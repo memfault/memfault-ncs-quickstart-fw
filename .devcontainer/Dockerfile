@@ -1,5 +1,16 @@
-FROM ghcr.io/nrfconnect/sdk-nrf-toolchain:v3.1.1
+ARG NCS_VERSION=v3.1.1
+
+FROM ghcr.io/nrfconnect/sdk-nrf-toolchain:${NCS_VERSION}
+ARG NCS_VERSION
 RUN rm /opt/ncs/toolchains/*/nrfutil/home/locked
-RUN nrfutil install sdk-manager=1.8.0
-RUN nrfutil sdk-manager install v3.1.1
+
+# Manually install nRF-Connect SDK
+RUN west init -m https://github.com/nrfconnect/sdk-nrf --mr ${NCS_VERSION} /opt/ncs/${NCS_VERSION} && \
+    cd /opt/ncs/${NCS_VERSION} && \
+    west update --narrow -o=--depth=1 && \
+    west zephyr-export
+
 RUN rm /opt/.bashrc
+RUN echo "source /opt/toolchain-env.sh" >> /opt/.bashrc
+
+LABEL org.opencontainers.image.source="https://github.com/memfault/memfault-ncs-quickstart-fw"
