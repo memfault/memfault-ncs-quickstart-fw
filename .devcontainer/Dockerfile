@@ -11,6 +11,8 @@ RUN west init -m https://github.com/nrfconnect/sdk-nrf --mr ${NCS_VERSION} /opt/
     west zephyr-export
 
 RUN rm /opt/.bashrc
-RUN echo "source /opt/toolchain-env.sh" >> /opt/.bashrc
+
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/toolchain-env.sh && exec \"$@\"", "--"]
+CMD ["/bin/bash"]
 
 LABEL org.opencontainers.image.source="https://github.com/memfault/memfault-ncs-quickstart-fw"

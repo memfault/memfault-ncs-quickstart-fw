@@ -1,0 +1,52 @@
+name: Build NCS Firmware
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/memfault/memfault-ncs-quickstart-fw:2025-10-29
+
+    strategy:
+      matrix:
+        board:
+          - nrf52840dk/nrf52840
+          - nrf54l15dk/nrf54l15/cpuapp
+      fail-fast: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Apply patches
+      run: |
+        git -C /opt/ncs/v3.1.1/nrf apply < patches/peripheral_mds.patch
+
+    - name: Build firmware for ${{ matrix.board }}
+      run: |
+        . /opt/toolchain-env.sh
+        cd /opt/ncs/v3.1.1
+        west build --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\"
+
+    - name: Create sanitized board name
+      id: board_name
+      run: |
+        BOARD_NAME="${{ matrix.board }}"
+        SANITIZED_NAME=$(echo "$BOARD_NAME" | sed 's/\//-/g')
+        echo "sanitized=$SANITIZED_NAME" >> $GITHUB_OUTPUT
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
+        path: |
+          /opt/ncs/v3.1.1/build/dfu_application.zip_manifest.json
+          /opt/ncs/v3.1.1/build/dfu_application.zip
+          /opt/ncs/v3.1.1/build/merged.hex
+          /opt/ncs/v3.1.1/build/peripheral_mds/zephyr/zephyr.elf
+        retention-days: 30
