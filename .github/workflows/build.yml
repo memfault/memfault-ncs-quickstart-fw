@@ -43,7 +43,24 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: firmware-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
+        name: firmware-v0.0.1-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
+        path: |
+          /opt/ncs/v3.1.1/build/dfu_application.zip_manifest.json
+          /opt/ncs/v3.1.1/build/dfu_application.zip
+          /opt/ncs/v3.1.1/build/merged.hex
+          /opt/ncs/v3.1.1/build/peripheral_mds/zephyr/zephyr.elf
+        retention-days: 30
+
+    - name: Rebuild with version=0.0.2
+      run: |
+        . /opt/toolchain-env.sh
+        cd /opt/ncs/v3.1.1
+        west build --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\" -DCONFIG_MEMFAULT_NCS_FW_VERSION=\"0.0.2\"
+
+    - name: Upload v0.0.2 build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware-v0.0.2-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
         path: |
           /opt/ncs/v3.1.1/build/dfu_application.zip_manifest.json
           /opt/ncs/v3.1.1/build/dfu_application.zip
