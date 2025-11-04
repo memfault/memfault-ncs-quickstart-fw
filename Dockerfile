@@ -10,8 +10,11 @@ RUN west init -m https://github.com/nrfconnect/sdk-nrf --mr ${NCS_VERSION} /opt/
     west update --narrow -o=--depth=1 && \
     west zephyr-export
 
-RUN rm /opt/.bashrc
+# Save NCS version as an environment variable, for use in the container
+ENV MEMFAULT_NCS_VERSION=${NCS_VERSION}
 
+# Remove the built-in bashrc shim, it tries to install J-Link
+RUN rm /opt/.bashrc
 ENTRYPOINT ["/bin/bash", "-c", "source /opt/toolchain-env.sh && exec \"$@\"", "--"]
 CMD ["/bin/bash"]
 
