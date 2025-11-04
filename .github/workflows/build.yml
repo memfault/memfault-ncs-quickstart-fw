@@ -25,9 +25,6 @@ jobs:
       fail-fast: false
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Create sanitized board name
       id: board_name
       run: |
@@ -36,8 +33,10 @@ jobs:
         echo "sanitized=$SANITIZED_NAME" >> $GITHUB_OUTPUT
 
     - name: Apply patches
+      # Patch from here:
+      # https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...memfault:noahp/memfault-project-key-runtime-v3.2.0-preview2
       run: |
-        git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply < patches/peripheral_mds.patch
+        wget -O - https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...4c2c02efd79bd254b67d11730489195bf286914a.diff | git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply
 
     - name: Build firmware for ${{ matrix.board }}
       run: |
