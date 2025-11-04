@@ -28,6 +28,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Create sanitized board name
+      id: board_name
+      run: |
+        BOARD_NAME="${{ matrix.board }}"
+        SANITIZED_NAME=$(echo "$BOARD_NAME" | sed 's/\//-/g')
+        echo "sanitized=$SANITIZED_NAME" >> $GITHUB_OUTPUT
+
     - name: Apply patches
       run: |
         git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply < patches/peripheral_mds.patch
@@ -36,39 +43,20 @@ jobs:
       run: |
         . /opt/toolchain-env.sh
         cd /opt/ncs/${MEMFAULT_NCS_VERSION}
-        west build --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\"
-
-    - name: Create sanitized board name
-      id: board_name
-      run: |
-        BOARD_NAME="${{ matrix.board }}"
-        SANITIZED_NAME=$(echo "$BOARD_NAME" | sed 's/\//-/g')
-        echo "sanitized=$SANITIZED_NAME" >> $GITHUB_OUTPUT
+        west build --build-dir 0.0.1 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\" -DCONFIG_MEMFAULT_NCS_FW_VERSION=\"0.0.1\"
+        west build --build-dir 0.0.2 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\" -DCONFIG_MEMFAULT_NCS_FW_VERSION=\"0.0.2\"
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: firmware-v0.0.1-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
+        name: firmware-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
         path: |
-          /opt/ncs/*/build/dfu_application.zip_manifest.json
-          /opt/ncs/*/build/dfu_application.zip
-          /opt/ncs/*/build/merged.hex
-          /opt/ncs/*/build/peripheral_mds/zephyr/zephyr.elf
-        retention-days: 30
-
-    - name: Rebuild with version=0.0.2
-      run: |
-        . /opt/toolchain-env.sh
-        cd /opt/ncs/${MEMFAULT_NCS_VERSION}
-        west build --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\" -DCONFIG_MEMFAULT_NCS_FW_VERSION=\"0.0.2\"
-
-    - name: Upload v0.0.2 build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: firmware-v0.0.2-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
-        path: |
-          /opt/ncs/*/build/dfu_application.zip_manifest.json
-          /opt/ncs/*/build/dfu_application.zip
-          /opt/ncs/*/build/merged.hex
-          /opt/ncs/*/build/peripheral_mds/zephyr/zephyr.elf
+          /opt/ncs/*/0.0.1/dfu_application.zip_manifest.json
+          /opt/ncs/*/0.0.1/dfu_application.zip
+          /opt/ncs/*/0.0.1/merged.hex
+          /opt/ncs/*/0.0.1/peripheral_mds/zephyr/zephyr.elf
+          /opt/ncs/*/0.0.2/dfu_application.zip_manifest.json
+          /opt/ncs/*/0.0.2/dfu_application.zip
+          /opt/ncs/*/0.0.2/merged.hex
+          /opt/ncs/*/0.0.2/peripheral_mds/zephyr/zephyr.elf
         retention-days: 30
