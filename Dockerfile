@@ -1,4 +1,4 @@
-ARG NCS_VERSION=v3.1.1
+ARG NCS_VERSION=v3.2.0-preview2
 
 FROM ghcr.io/nrfconnect/sdk-nrf-toolchain:${NCS_VERSION}
 ARG NCS_VERSION
