@@ -3,6 +3,8 @@ name: Build NCS Firmware
 on:
   push:
     branches: [ main ]
+    tags:
+      - '*'
   pull_request:
     branches: [ main ]
 
@@ -48,7 +50,7 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: firmware-${{ steps.board_name.outputs.sanitized }}-${{ github.sha }}
+        name: ${{ steps.board_name.outputs.sanitized }}
         path: |
           /opt/ncs/*/0.0.1/dfu_application.zip_manifest.json
           /opt/ncs/*/0.0.1/dfu_application.zip
@@ -59,3 +61,26 @@ jobs:
           /opt/ncs/*/0.0.2/merged.hex
           /opt/ncs/*/0.0.2/peripheral_mds/zephyr/zephyr.elf
         retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    # if: github.event_name == 'create' && github.event.ref_type == 'tag'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: Create GitHub Release with auto-generated notes
+      run: |
+        echo gh release create ${{ github.ref_name }} \
+          --title "Release ${{ github.ref_name }}" \
+          --generate-notes \
+          ./artifacts/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
