@@ -55,19 +55,29 @@ jobs:
         sed -i 's/PATCHLEVEL = 1/PATCHLEVEL = 2/' nrf/samples/bluetooth/peripheral_mds/VERSION
         west build --build-dir 0.0.2 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds
 
+    - name: Store build artifact archives
+      run: |
+        mkdir -p ~/artifacts/${{ steps.board_name.outputs.sanitized }}/{0.0.1,0.0.2}
+        for ver in 0.0.1 0.0.2; do
+          cd /opt/ncs/${MEMFAULT_NCS_VERSION}/${ver}/
+          cp \
+            dfu_application.zip_manifest.json \
+            dfu_application.zip \
+            merged.hex \
+            peripheral_mds/zephyr/zephyr.elf \
+            \
+            ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/
+        done
+
+        # now zip them up
+        zip -r ~/artifacts/${{ steps.board_name.outputs.sanitized }}.zip ~/artifacts/${{ steps.board_name.outputs.sanitized }}
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.board_name.outputs.sanitized }}
         path: |
-          /opt/ncs/*/0.0.1/dfu_application.zip_manifest.json
-          /opt/ncs/*/0.0.1/dfu_application.zip
-          /opt/ncs/*/0.0.1/merged.hex
-          /opt/ncs/*/0.0.1/peripheral_mds/zephyr/zephyr.elf
-          /opt/ncs/*/0.0.2/dfu_application.zip_manifest.json
-          /opt/ncs/*/0.0.2/dfu_application.zip
-          /opt/ncs/*/0.0.2/merged.hex
-          /opt/ncs/*/0.0.2/peripheral_mds/zephyr/zephyr.elf
+          ~/artifacts/${{ steps.board_name.outputs.sanitized }}.zip
         retention-days: 30
 
   release:
@@ -84,18 +94,6 @@ jobs:
       with:
         path: ./artifacts
 
-    - name: Create release archives
-      run: |
-        mkdir -p ./release-assets
-        cd ./artifacts
-        for board_dir in */; do
-          board_name=${board_dir%/}
-          echo "Creating archive for $board_name"
-          cd "$board_dir"
-          zip -r "../../release-assets/${board_name}.zip" .
-          cd ..
-        done
-
     - name: Create GitHub Release with auto-generated notes
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -103,5 +101,5 @@ jobs:
         echo gh release create ${{ github.ref_name }} \
           --title "Release ${{ github.ref_name }}" \
           --generate-notes \
-          ./release-assets/*.zip
-        ls -R ./release-assets
+          ./artifacts/*.zip
+        ls -R ./artifacts
