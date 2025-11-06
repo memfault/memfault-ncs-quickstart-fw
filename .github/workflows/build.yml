@@ -57,8 +57,8 @@ jobs:
 
     - name: Store build artifact archives
       run: |
-        mkdir -p ~/artifacts/${{ steps.board_name.outputs.sanitized }}/{0.0.1,0.0.2}
         for ver in 0.0.1 0.0.2; do
+          mkdir -p ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/
           cd /opt/ncs/${MEMFAULT_NCS_VERSION}/${ver}/
           cp \
             dfu_application.zip_manifest.json \
