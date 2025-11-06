@@ -38,14 +38,22 @@ jobs:
       # Patch from here:
       # https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...memfault:noahp/memfault-project-key-runtime-v3.2.0-preview2
       run: |
-        wget -O - https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...4c2c02efd79bd254b67d11730489195bf286914a.diff | git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply
+        wget -O - https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...e59bb1f4f85db5f9e4d66f6c66f90f4143f8ad5e.diff | git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply
 
     - name: Build firmware for ${{ matrix.board }}
       run: |
         . /opt/toolchain-env.sh
         cd /opt/ncs/${MEMFAULT_NCS_VERSION}
-        west build --build-dir 0.0.1 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\" -DCONFIG_MEMFAULT_NCS_FW_VERSION=\"0.0.1\"
-        west build --build-dir 0.0.2 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds -- -DCONFIG_MEMFAULT_NCS_PROJECT_KEY=\"dummy\" -DCONFIG_MEMFAULT_NCS_FW_VERSION=\"0.0.2\"
+
+        # build 0.0.1 version
+        west build --build-dir 0.0.1 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds
+
+        # to build the 0.0.2 version, we need to modify the line like this in samples/bluetooth/peripheral_mds/VERSION:
+        # PATCHLEVEL = 1
+        # to
+        # PATCHLEVEL = 2
+        sed -i 's/PATCHLEVEL = 1/PATCHLEVEL = 2/' nrf/samples/bluetooth/peripheral_mds/VERSION
+        west build --build-dir 0.0.2 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -82,5 +90,6 @@ jobs:
           --title "Release ${{ github.ref_name }}" \
           --generate-notes \
           ./artifacts/*/*.zip
+        ls ./artifacts/*/*.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
