@@ -108,13 +108,18 @@ jobs:
     if: github.event_name == 'create' && github.event.ref_type == 'tag'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Download all artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         path: ./artifacts
+
+    - name: Pack up artifacts again for release
+      run: |
+        mkdir -p ./release-pack
+        for dir in ./artifacts/*; do
+          BOARD_NAME=$(basename "$dir")
+          zip -r ./release-pack/${BOARD_NAME}.zip "$dir"
+        done
 
     - name: Create GitHub Release with auto-generated notes
       env:
@@ -123,4 +128,4 @@ jobs:
         gh release create ${{ github.ref_name }} \
           --title "Release ${{ github.ref_name }}" \
           --generate-notes \
-          ./artifacts/*.zip
+          ./release-pack/*.zip
