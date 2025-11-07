@@ -18,11 +18,11 @@ jobs:
       matrix:
         board:
           - nrf52840dk/nrf52840
-          # - nrf5340dk/nrf5340/cpuapp
-          # - thingy53/nrf5340/cpuapp
-          # - nrf54l15dk/nrf54l15/cpuapp
-          # - nrf54lm20dk/nrf54lm20a/cpuapp
-          # - nrf54h20dk/nrf54h20/cpuapp
+          - nrf5340dk/nrf5340/cpuapp
+          - thingy53/nrf5340/cpuapp
+          - nrf54l15dk/nrf54l15/cpuapp
+          - nrf54lm20dk/nrf54lm20a/cpuapp
+          - nrf54h20dk/nrf54h20/cpuapp
 
       fail-fast: false
 
@@ -38,7 +38,7 @@ jobs:
       # Patch from here:
       # https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...memfault:noahp/memfault-project-key-runtime-v3.2.0-preview2
       run: |
-        wget -O - https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...e59bb1f4f85db5f9e4d66f6c66f90f4143f8ad5e.diff | git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply
+        curl -fsSL https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...e59bb1f4f85db5f9e4d66f6c66f90f4143f8ad5e.diff | git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply
 
     - name: Build firmware for ${{ matrix.board }}
       run: |
@@ -69,21 +69,18 @@ jobs:
             ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/
         done
 
-        # now zip them up
-        zip -r ~/artifacts/${{ steps.board_name.outputs.sanitized }}.zip ~/artifacts/${{ steps.board_name.outputs.sanitized }}
-
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ steps.board_name.outputs.sanitized }}
         path: |
-          ~/artifacts/${{ steps.board_name.outputs.sanitized }}.zip
+          ~/artifacts/${{ steps.board_name.outputs.sanitized }}
         retention-days: 30
 
   release:
     needs: build
     runs-on: ubuntu-latest
-    # if: github.event_name == 'create' && github.event.ref_type == 'tag'
+    if: github.event_name == 'create' && github.event.ref_type == 'tag'
 
     steps:
     - name: Checkout code
@@ -98,8 +95,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo gh release create ${{ github.ref_name }} \
+        gh release create ${{ github.ref_name }} \
           --title "Release ${{ github.ref_name }}" \
           --generate-notes \
           ./artifacts/*.zip
-        ls -R ./artifacts
