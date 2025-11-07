@@ -73,13 +73,14 @@ jobs:
           # Handle hex files - special case for nrf54h20dk board
           if [[ "${{ matrix.board }}" == "nrf54h20dk/nrf54h20/cpuapp" ]]; then
             # Copy the specific hex files for nrf54h20dk
-            cp \
-              mcuboot/zephyr/zephyr.hex \
-              ipc_radio/zephyr/zephyr.signed.hex \
-              uicr/zephyr/zephyr.hex \
-              peripheral_mds/zephyr/zephyr.signed.hex \
-              \
-              ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/
+            cp mcuboot/zephyr/zephyr.hex \
+               ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/mcuboot.zephyr.hex
+            cp ipc_radio/zephyr/zephyr.signed.hex \
+               ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/ipc_radio.zephyr.signed.hex
+            cp uicr/zephyr/zephyr.hex \
+               ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/uicr.zephyr.hex
+            cp peripheral_mds/zephyr/zephyr.signed.hex \
+               ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/peripheral_mds.zephyr.signed.hex
           else
             # Copy merged.hex for all other boards
             cp merged.hex ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/
