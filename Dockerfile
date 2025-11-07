@@ -2,7 +2,11 @@ ARG NCS_VERSION=v3.2.0-preview2
 
 FROM ghcr.io/nrfconnect/sdk-nrf-toolchain:${NCS_VERSION}
 ARG NCS_VERSION
-RUN rm /opt/ncs/toolchains/*/nrfutil/home/locked
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    zip \
+    && rm -rf /var/lib/apt/lists/*
 
 # Manually install nRF-Connect SDK
 RUN west init -m https://github.com/nrfconnect/sdk-nrf --mr ${NCS_VERSION} /opt/ncs/${NCS_VERSION} && \
