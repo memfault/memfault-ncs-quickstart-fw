@@ -45,7 +45,7 @@ jobs:
       # Patch from here:
       # https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...memfault:noahp/memfault-project-key-runtime-v3.2.0-preview2
       run: |
-        curl -fsSL https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...e59bb1f4f85db5f9e4d66f6c66f90f4143f8ad5e.diff | git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply
+        curl -fsSL https://github.com/nrfconnect/sdk-nrf/compare/v3.2.0-preview2-branch...58cb48a9e17e4544cd926c8d9737f0ad52d68346.diff | git -C /opt/ncs/${MEMFAULT_NCS_VERSION}/nrf apply
 
     - name: Build firmware for ${{ matrix.board }}
       run: |
