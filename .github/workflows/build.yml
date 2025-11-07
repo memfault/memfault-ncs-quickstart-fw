@@ -27,6 +27,13 @@ jobs:
       fail-fast: false
 
     steps:
+
+    - name: ccache
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/ccache
+        key: ccache-v1-${{ matrix.board }}-${{ runner.os }}
+
     - name: Create sanitized board name
       id: board_name
       run: |
