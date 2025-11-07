@@ -56,6 +56,7 @@ jobs:
         west build --build-dir 0.0.2 --sysbuild --pristine=always --board ${{ matrix.board }} nrf/samples/bluetooth/peripheral_mds
 
     - name: Store build artifact archives
+      shell: bash
       run: |
         for ver in 0.0.1 0.0.2; do
           mkdir -p ~/artifacts/${{ steps.board_name.outputs.sanitized }}/${ver}/
